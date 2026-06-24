@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>English Vocabulary Quiz (Mobile Friendly)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: white;
+            padding: 25px 20px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            height: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #2ecc71;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            min-height: 50px;
+            color: #2c3e50;
+            line-height: 1.5;
+            padding: 0 5px;
+        }
+        /* Mobile-first: Buttons untereinander für bessere Touch-Bedienung */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+            width: 100%;
+            align-items: center;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            width: 100%;
+            max-width: 340px;
+            box-sizing: border-box;
+            -webkit-appearance: none;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.correct {
+            background-color: #2ecc71 !important;
+        }
+        button.wrong {
+            background-color: #e74c3c !important;
+        }
+        .action-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            min-height: 45px;
+            width: 100%;
+        }
+        .hint-btn {
+            background-color: #f1c40f;
+            color: #2c3e50;
+            padding: 10px 20px;
+            font-size: 14px;
+            width: 100%;
+            max-width: 340px;
+        }
+        .hint-btn:hover {
+            background-color: #f39c12;
+        }
+        .next-btn {
+            background-color: #2c3e50;
+            padding: 12px 25px;
+            display: none;
+            width: 100%;
+            max-width: 340px;
+        }
+        .next-btn:hover {
+            background-color: #1a252f;
+        }
+        .feedback {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            min-height: 50px;
+            line-height: 1.4;
+        }
+        .hint-box {
+            display: none;
+            background-color: #feffa3;
+            border-left: 5px solid #f1c40f;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: left;
+            border-radius: 4px;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 340px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .score-screen {
+            display: none;
+        }
+        .score-screen h2 {
+            color: #2ecc71;
+            font-size: 24px;
+            margin-top: 0;
+        }
+        .score-screen p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-box">
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Question 1 of 15</div>
+        <div class="question" id="question">Loading question...</div>
+        <div class="options-container" id="options">
+            </div>
+        
+        <div class="action-container">
+            <button class="hint-btn" id="hint-button" onclick="showHint()">Show Hint 💡</button>
+            <button class="next-btn" id="next-button" onclick="nextQuestion()">Next Question ➔</button>
+        </div>
+        
+        <div class="hint-box" id="hint-box"></div>
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div id="score-box" class="score-screen">
+        <h2>Great job! 🎉</h2>
+        <p id="final-score">You answered X out of X questions correctly.</p>
+        <button onclick="resetQuiz()" style="width: 100%; max-width: 340px;">Play Again</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "One _______ is playing in the garden, but three _______ are in the kitchen.",
+            answers: ["child / children", "children / lives", "child / diaries", "person / thieves"],
+            correct: 0,
+            hint: "Look out for the irregular plural forms of 'child'!"
+        },
+        {
+            question: "What is the opposite of 'bright'?",
+            answers: ["boring", "dark", "scary", "important"],
+            correct: 1,
+            hint: "Think about the sun or a room without windows."
+        },
+        {
+            question: "I want to call my friend. I need my _______.",
+            answers: ["rucksack", "ticket", "bottle", "mobile phone"],
+            correct: 3,
+            hint: "German speakers often say 'Handy', but this is a false friend in English!"
+        },
+        {
+            question: "Look at the table right next to me! _______ books here are great.",
+            answers: ["This", "That", "These", "Those"],
+            correct: 2,
+            hint: "The books are near the speaker (plural form)."
+        },
+        {
+            question: "The police are looking for the _______ who stole the money.",
+            answers: ["traveller", "holidaymaker", "thieves", "character"],
+            correct: 2,
+            hint: "Remember: 'thief' turns into a plural form ending in '-ves'."
+        },
+        {
+            question: "What is the opposite of 'exciting'?",
+            answers: ["boring", "perfect", "clever", "dangerous"],
+            correct: 0,
+            hint: "If a film or a lesson is not interesting at all, it is..."
+        },
+        {
+            question: "The dog is trying to _______ the school bag.",
+            answers: ["taste", "smell", "smile", "weigh"],
+            correct: 1,
+            hint: "Dogs use their noses to check out objects."
+        },
+        {
+            question: "We want to cross the water to the island. Let's take the _______.",
+            answers: ["ferry", "kilometre", "attic", "centre"],
+            correct: 0,
+            hint: "It is a kind of boat that carries people and cars."
+        },
+        {
+            question: "My grandfather writes down his secrets every day in his _______.",
+            answers: ["magazine", "paper", "phrase", "diary"],
+            correct: 3,
+            hint: "The plural form of this word is 'diaries'."
+        },
+        {
+            question: "Be careful! Walking near the edge of the high cliff is _______.",
+            answers: ["safe", "dangerous", "early", "slow"],
+            correct: 1,
+            hint: "It is not safe; you could fall."
+        },
+        {
+            question: "The little house is located in a quiet _______ in the countryside.",
+            answers: ["ocean", "city", "village", "coast"],
+            correct: 2,
+            hint: "A place where people live that is much smaller than a city."
+        },
+        {
+            question: "I bought a _______ for the cinema, but I lost it.",
+            answers: ["pound", "coin", "ticket", "umbrella"],
+            correct: 2,
+            hint: "You need to show this paper before you can go inside."
+        },
+        {
+            question: "What is the opposite of 'fast'?",
+            answers: ["hard", "far", "slow", "together"],
+            correct: 2,
+            hint: "Think about a turtle moving along the grass."
+        },
+        {
+            question: "Can you hear that scary _______ coming from the old attic?",
+            answers: ["food", "sound", "mouth", "face"],
+            correct: 1,
+            hint: "It's a noise or a clang, not a human talking."
+        },
+        {
+            question: "We love to walk _______ the river and look at the fish.",
+            answers: ["between", "under", "above", "along"],
+            correct: 3,
+            hint: "Following the path of the river side by side."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let hasAnswered = false;
+
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const questionEl = document.getElementById('question');
+    const optionsContainer = document.getElementById('options');
+    const feedbackEl = document.getElementById('feedback');
+    const hintBox = document.getElementById('hint-box');
+    const nextButton = document.getElementById('next-button');
+    const hintButton = document.getElementById('hint-button');
+    const quizBox = document.getElementById('quiz-box');
+    const scoreBox = document.getElementById('score-box');
+    const finalScoreEl = document.getElementById('final-score');
+
+    function loadQuestion() {
+        hasAnswered = false;
+        feedbackEl.innerText = "";
+        hintBox.style.display = "none";
+        nextButton.style.display = "none";
+        hintButton.style.display = "block";
+        
+        let currentQuestion = quizData[currentQuestionIndex];
+        
+        const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+        progressBar.style.width = `${progressPercent}%`;
+        progressText.innerText = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+        
+        questionEl.innerText = currentQuestion.question;
+        
+        optionsContainer.innerHTML = "";
+        currentQuestion.answers.forEach((answer, index) => {
+            const button = document.createElement('button');
+            button.innerText = answer;
+            button.onclick = () => selectAnswer(index, button);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function showHint() {
+        let currentQuestion = quizData[currentQuestionIndex];
+        hintBox.innerText = currentQuestion.hint;
+        hintBox.style.display = "block";
+        hintButton.style.display = "none";
+    }
+
+    function selectAnswer(selectedIndex, clickedButton) {
+        if (hasAnswered) return;
+        hasAnswered = true;
+        
+        let currentQuestion = quizData[currentQuestionIndex];
+        const allButtons = optionsContainer.getElementsByTagName('button');
+        
+        if (selectedIndex === currentQuestion.correct) {
+            clickedButton.classList.add('correct');
+            feedbackEl.innerHTML = "<span class='correct'>Correct! 🌟</span>";
+            score++;
+        } else {
+            clickedButton.classList.add('wrong');
+            allButtons[currentQuestion.correct].classList.add('correct');
+            feedbackEl.innerHTML = "<span class='wrong'>Not quite! The correct word is green.</span>";
+        }
+        
+        if (currentQuestionIndex === quizData.length - 1) {
+            progressBar.style.width = "100%";
+        }
+        
+        nextButton.style.display = "block";
+        hintButton.style.display = "none";
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showScore();
+        }
+    }
+
+    function showScore() {
+        quizBox.style.display = "none";
+        scoreBox.style.display = "block";
+        finalScoreEl.innerText = `You mastered ${score} out of ${quizData.length} questions correctly. Excellent preparation for Friday!`;
+    }
+
+    function resetQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        quizBox.style.display = "block";
+        scoreBox.style.display = "none";
+        loadQuestion();
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
