@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>English Vocabulary Trainer (Set 2)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .trainer-container {
+            background-color: white;
+            padding: 25px 20px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .progress {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        .clue {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            line-height: 1.5;
+            padding: 0 10px;
+        }
+        .input-area {
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            width: 100%;
+            max-width: 320px;
+            padding: 14px;
+            font-size: 16px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            text-align: center;
+            outline: none;
+            box-sizing: border-box;
+            -webkit-appearance: none;
+        }
+        input[type="text"]:focus {
+            border-color: #3498db;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 5px;
+            -webkit-appearance: none;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .feedback {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            min-height: 60px;
+            line-height: 1.4;
+        }
+        .correct { color: #2ecc71; }
+        .wrong { color: #e74c3c; }
+        .score-screen { display: none; }
+        
+        @media (max-width: 380px) {
+            h1 { font-size: 18px; }
+            .clue { font-size: 15px; }
+            button, input[type="text"] { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="trainer-container">
+    <div id="quiz-box">
+        <div class="progress" id="progress">Word 1 of 15</div>
+        <div class="clue" id="clue">Loading clue...</div>
+        
+        <div class="input-area">
+            <input type="text" id="user-input" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Type the word..." onkeydown="if(event.key === 'Enter') checkAnswer()">
+        </div>
+        
+        <button id="action-button" onclick="checkAnswer()">Submit</button>
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div id="score-box" class="score-screen">
+        <h2 style="color: #2ecc71; margin-top: 0;">Training Finished! 🎉</h2>
+        <p id="final-score" style="font-size: 16px;"></p>
+        <button onclick="resetTrainer()">Practice Again</button>
+    </div>
+</div>
+
+<script>
+    const vocabData = [
+        { clue: "A place where you can see very old things from the past.", answer: "museum" },
+        { clue: "The yellow thing in the sky that gives us light during the day.", answer: "sun" },
+        { clue: "A bag that you carry on your back for school or hiking.", answer: "rucksack" },
+        { clue: "When you eat outside on the grass with your family or friends.", answer: "picnic" },
+        { clue: "If you are not feeling well, you are... (krank; starts with a s).", answer: "sick" },
+        { clue: "A round piece of metal money is called a... (Münze).", answer: "coin" },
+        { clue: "You do this with your mouth when you are happy.", answer: "smile" },
+        { clue: "The opposite of 'late' (spät).", answer: "early" },
+        { clue: "Earth is a... (starts with a p).", answer: "planet" },
+        { clue: "A person who writes a book is the...", answer: "author" },
+        { clue: "A small thing to eat between breakfast and lunch.", answer: "snack" },
+        { clue: "A round fruit that has the same name as a colour.", answer: "orange" },
+        { clue: "The opposite of 'stupid' (dumm; starts with a c).", answer: "clever" },
+        { clue: "You can write or draw on this. It is often white and made from trees.", answer: "paper" },
+        { clue: "British money is called the...", answer: "pound" }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let isShowingFeedback = false;
+
+    const clueEl = document.getElementById('clue');
+    const inputEl = document.getElementById('user-input');
+    const feedbackEl = document.getElementById('feedback');
+    const buttonEl = document.getElementById('action-button');
+    const progressEl = document.getElementById('progress');
+    const quizBox = document.getElementById('quiz-box');
+    const scoreBox = document.getElementById('score-box');
+    const finalScoreEl = document.getElementById('final-score');
+
+    function loadWord() {
+        isShowingFeedback = false;
+        inputEl.value = "";
+        inputEl.disabled = false;
+        feedbackEl.innerHTML = "";
+        buttonEl.innerText = "Submit";
+        
+        progressEl.innerText = `Word ${currentIndex + 1} of ${vocabData.length}`;
+        clueEl.innerText = vocabData[currentIndex].clue;
+        
+        setTimeout(() => { inputEl.focus(); }, 50);
+    }
+
+    function checkAnswer() {
+        if (isShowingFeedback) {
+            currentIndex++;
+            if (currentIndex < vocabData.length) {
+                loadWord();
+            } else {
+                showScore();
+            }
+            return;
+        }
+
+        const userAnswer = inputEl.value.trim().toLowerCase();
+        const correctAnswer = vocabData[currentIndex].answer.toLowerCase();
+
+        if (userAnswer === "") return;
+
+        isShowingFeedback = true;
+        inputEl.disabled = true;
+        buttonEl.innerText = "Next Word ➔";
+
+        if (userAnswer === correctAnswer) {
+            feedbackEl.innerHTML = "<span class='correct'>Correct! 🌟</span>";
+            score++;
+        } else {
+            feedbackEl.innerHTML = `<span class='wrong'>Not quite.</span><br><span style='color: #2c3e50; font-weight: normal; font-size: 14px;'>The correct answer is:</span><br><strong>${correctAnswer}</strong>`;
+        }
+    }
+
+    function showScore() {
+        quizBox.style.display = "none";
+        scoreBox.style.display = "block";
+        finalScoreEl.innerText = `You got ${score} out of ${vocabData.length} words right! Excellent effort!`;
+    }
+
+    function resetTrainer() {
+        currentIndex = 0;
+        score = 0;
+        quizBox.style.display = "block";
+        scoreBox.style.display = "none";
+        loadWord();
+    }
+
+    loadWord();
+</script>
+
+</body>
+</html>

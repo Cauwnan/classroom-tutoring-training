@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>English Vocabulary Quiz 2 (Mobile Friendly)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: white;
+            padding: 25px 20px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            height: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #2ecc71;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            min-height: 50px;
+            color: #2c3e50;
+            line-height: 1.5;
+            padding: 0 5px;
+        }
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+            width: 100%;
+            align-items: center;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            width: 100%;
+            max-width: 340px;
+            box-sizing: border-box;
+            -webkit-appearance: none;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.correct {
+            background-color: #2ecc71 !important;
+        }
+        button.wrong {
+            background-color: #e74c3c !important;
+        }
+        .action-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            min-height: 45px;
+            width: 100%;
+        }
+        .hint-btn {
+            background-color: #f1c40f;
+            color: #2c3e50;
+            padding: 10px 20px;
+            font-size: 14px;
+            width: 100%;
+            max-width: 340px;
+        }
+        .hint-btn:hover {
+            background-color: #f39c12;
+        }
+        .next-btn {
+            background-color: #2c3e50;
+            padding: 12px 25px;
+            display: none;
+            width: 100%;
+            max-width: 340px;
+        }
+        .next-btn:hover {
+            background-color: #1a252f;
+        }
+        .feedback {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            min-height: 50px;
+            line-height: 1.4;
+        }
+        .hint-box {
+            display: none;
+            background-color: #feffa3;
+            border-left: 5px solid #f1c40f;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: left;
+            border-radius: 4px;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 340px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .score-screen {
+            display: none;
+        }
+        .score-screen h2 {
+            color: #2ecc71;
+            font-size: 24px;
+            margin-top: 0;
+        }
+        .score-screen p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-box">
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Question 1 of 15</div>
+        <div class="question" id="question">Loading question...</div>
+        <div class="options-container" id="options">
+            </div>
+        
+        <div class="action-container">
+            <button class="hint-btn" id="hint-button" onclick="showHint()">Show Hint 💡</button>
+            <button class="next-btn" id="next-button" onclick="nextQuestion()">Next Question ➔</button>
+        </div>
+        
+        <div class="hint-box" id="hint-box"></div>
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div id="score-box" class="score-screen">
+        <h2>Great job! 🎉</h2>
+        <p id="final-score">You answered X out of X questions correctly.</p>
+        <button onclick="resetQuiz()" style="width: 100%; max-width: 340px;">Play Again</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "Look at the dog! Why does it _______ at me?",
+            answers: ["smile", "taste", "bark", "push"],
+            correct: 2,
+            hint: "Dogs make this loud noise."
+        },
+        {
+            question: "We always _______ to Spain in June.",
+            answers: ["travel", "smuggle", "check", "prepare"],
+            correct: 0,
+            hint: "Going on a trip to another country."
+        },
+        {
+            question: "I am reading a great book. The _______ writes really well.",
+            answers: ["tourist", "holidaymaker", "character", "author"],
+            correct: 3,
+            hint: "The person who writes a book."
+        },
+        {
+            question: "In the night, you can see the _______ in the sky.",
+            answers: ["sun", "planet", "moon", "county"],
+            correct: 2,
+            hint: "It shines at night, not during the day."
+        },
+        {
+            question: "How much do you _______? - About 35 kilograms.",
+            answers: ["weigh", "feel", "understand", "taste"],
+            correct: 0,
+            hint: "Finding out how heavy someone or something is."
+        },
+        {
+            question: "Dad _______ the house at 8 am and starts work at 9.",
+            answers: ["arrives", "leaves", "practises", "smiles"],
+            correct: 1,
+            hint: "To go out of a place."
+        },
+        {
+            question: "What is the opposite of 'early'?",
+            answers: ["late", "fast", "slow", "hard"],
+            correct: 0,
+            hint: "If you are not on time, you are..."
+        },
+        {
+            question: "Look at the price! I want to _______ this cool T-shirt.",
+            answers: ["sell", "smuggle", "buy", "copy"],
+            correct: 2,
+            hint: "You give money to get something from a shop."
+        },
+        {
+            question: "The _______ is very deep and full of water.",
+            answers: ["village", "ocean", "county", "centre"],
+            correct: 1,
+            hint: "It is like a very big sea."
+        },
+        {
+            question: "I had a crazy _______ last night while I was sleeping.",
+            answers: ["trip", "face", "spot", "dream"],
+            correct: 3,
+            hint: "Images and stories in your mind when you sleep."
+        },
+        {
+            question: "Don't _______! It's not funny!",
+            answers: ["fart", "fight", "laugh", "bark"],
+            correct: 2,
+            hint: "The sound you make when something is very funny."
+        },
+        {
+            question: "You can find old things like dinosaur bones in a _______.",
+            answers: ["magazine", "museum", "box", "diary"],
+            correct: 1,
+            hint: "A place where you look at history and art."
+        },
+        {
+            question: "I don't need any help, I can do it _______.",
+            answers: ["together", "first", "almost", "alone"],
+            correct: 3,
+            hint: "By yourself, with no other people."
+        },
+        {
+            question: "My sister has beautiful _______ hair.",
+            answers: ["loud", "blond", "old", "laughing"],
+            correct: 1,
+            hint: "A light yellow hair color."
+        },
+        {
+            question: "Can you _______ this word to me? I don't understand it.",
+            answers: ["copy", "allow", "explain", "prepare"],
+            correct: 2,
+            hint: "To make something clear so another person understands it."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let hasAnswered = false;
+
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const questionEl = document.getElementById('question');
+    const optionsContainer = document.getElementById('options');
+    const feedbackEl = document.getElementById('feedback');
+    const hintBox = document.getElementById('hint-box');
+    const nextButton = document.getElementById('next-button');
+    const hintButton = document.getElementById('hint-button');
+    const quizBox = document.getElementById('quiz-box');
+    const scoreBox = document.getElementById('score-box');
+    const finalScoreEl = document.getElementById('final-score');
+
+    function loadQuestion() {
+        hasAnswered = false;
+        feedbackEl.innerText = "";
+        hintBox.style.display = "none";
+        nextButton.style.display = "none";
+        hintButton.style.display = "block";
+        
+        let currentQuestion = quizData[currentQuestionIndex];
+        
+        const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+        progressBar.style.width = `${progressPercent}%`;
+        progressText.innerText = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+        
+        questionEl.innerText = currentQuestion.question;
+        
+        optionsContainer.innerHTML = "";
+        currentQuestion.answers.forEach((answer, index) => {
+            const button = document.createElement('button');
+            button.innerText = answer;
+            button.onclick = () => selectAnswer(index, button);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function showHint() {
+        let currentQuestion = quizData[currentQuestionIndex];
+        hintBox.innerText = currentQuestion.hint;
+        hintBox.style.display = "block";
+        hintButton.style.display = "none";
+    }
+
+    function selectAnswer(selectedIndex, clickedButton) {
+        if (hasAnswered) return;
+        hasAnswered = true;
+        
+        let currentQuestion = quizData[currentQuestionIndex];
+        const allButtons = optionsContainer.getElementsByTagName('button');
+        
+        if (selectedIndex === currentQuestion.correct) {
+            clickedButton.classList.add('correct');
+            feedbackEl.innerHTML = "<span class='correct'>Correct! 🌟</span>";
+            score++;
+        } else {
+            clickedButton.classList.add('wrong');
+            allButtons[currentQuestion.correct].classList.add('correct');
+            feedbackEl.innerHTML = "<span class='wrong'>Not quite! The correct word is green.</span>";
+        }
+        
+        if (currentQuestionIndex === quizData.length - 1) {
+            progressBar.style.width = "100%";
+        }
+        
+        nextButton.style.display = "block";
+        hintButton.style.display = "none";
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showScore();
+        }
+    }
+
+    function showScore() {
+        quizBox.style.display = "none";
+        scoreBox.style.display = "block";
+        finalScoreEl.innerText = `You mastered ${score} out of ${quizData.length} questions correctly. Great job!`;
+    }
+
+    function resetQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        quizBox.style.display = "block";
+        scoreBox.style.display = "none";
+        loadQuestion();
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
